@@ -2,6 +2,8 @@ import streamlit as st
 from PIL import Image
 from tensorflow.keras.preprocessing.image import img_to_array
 import numpy as np
+import gzip
+import pickle
 
 def preprocess_image(image):
   image = image.convert('L') #convertir a escalas de grises
@@ -9,7 +11,13 @@ def preprocess_image(image):
   image_array = img_to_array(image) / 255.0
   image_array = np.expand_dims(image_array, axis = 0)
   return image_array
-  
+
+def load_model():
+  filename = "mdoel_trained.pkl.gz"
+  with gzip.open(filename, 'rb') as f:
+    model = pickle.load(f)
+  return model
+
 def main():
   st.title('Clasificacion de la base de datos Mnist')
   st.markdown('Sube una imagen para clasificar')
@@ -23,6 +31,14 @@ if uploaded_file is not None:
   preprocessed_image = preprocess_image(image)
     
   st.image(preprocessed_image, caption = "imagen subida")
+
+
+if st.button("Clasificar imagen"):
+      st.markdown("Imagen clasificada")
+      model = load_model()
+      # Necesitamos un arreglo de (1,784) por lo cual le vamos a hacer un reshape
+      prediction = model.predict(preprocessed_image.reshape(1,-1))
+      st.markdown(f"La imagen fue clasificada como: {prediction}")
   
 if __name__=='__main__':
   main()
